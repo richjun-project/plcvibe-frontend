@@ -373,7 +373,7 @@ export function ChatInterface() {
             ))}
 
             {/* Loading State */}
-            {isLoading && agentMode === 'advanced' && (
+            {isLoading && (
               <div className="space-y-4">
                 <CompactProgress
                   currentStep={currentStep}
@@ -382,13 +382,6 @@ export function ChatInterface() {
                   iteration={iteration}
                   isComplete={isComplete}
                 />
-              </div>
-            )}
-
-            {isLoading && agentMode === 'normal' && (
-              <div className="flex items-center gap-2 text-gray-400">
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span className="text-sm">Thinking...</span>
               </div>
             )}
 
