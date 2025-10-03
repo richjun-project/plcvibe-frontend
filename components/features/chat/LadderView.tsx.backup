@@ -1,0 +1,21 @@
+"use client"
+
+import { GridLadderView } from '@/components/ladder/GridLadderView'
+
+export interface LadderViewProps {
+  code: string
+  validationSuccess?: boolean
+  errorCount?: number
+  onCodeChange?: (code: string) => void
+}
+
+export function LadderView({ code, validationSuccess = true, errorCount = 0, onCodeChange }: LadderViewProps) {
+  return (
+    <GridLadderView
+      code={code}
+      validationSuccess={validationSuccess}
+      errorCount={errorCount}
+      onCodeChange={onCodeChange}
+    />
+  )
+}
