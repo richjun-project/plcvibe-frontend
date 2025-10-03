@@ -196,10 +196,26 @@ export function LadderView({
     }
   }
 
+  // Debug info for production troubleshooting
+  const debugInfo = {
+    hasCode: !!code,
+    codeLength: code?.length || 0,
+    codePreview: code?.substring(0, 100) || '',
+    hasProgram: !!program,
+    hasSimulator: !!simulator,
+    hasSimulatorState: !!simulatorState,
+    networkCount: program?.networks?.length || 0,
+    error: error || null
+  }
+
   if (!code || code.trim().length === 0) {
     return (
       <div className="rounded-lg border border-dashed border-gray-600 bg-gray-900/30 p-8 text-center">
         <p className="text-sm text-gray-500">No code generated yet</p>
+        <details className="mt-4 text-left">
+          <summary className="text-xs text-gray-600 cursor-pointer hover:text-gray-500">Debug Info</summary>
+          <pre className="mt-2 text-xs text-gray-600 overflow-auto">{JSON.stringify(debugInfo, null, 2)}</pre>
+        </details>
       </div>
     )
   }
@@ -212,14 +228,22 @@ export function LadderView({
           <span className="font-medium">Parse Error</span>
         </div>
         <p className="mt-2 text-sm text-gray-400">{error}</p>
+        <details className="mt-4">
+          <summary className="text-xs text-gray-500 cursor-pointer hover:text-gray-400">Debug Info</summary>
+          <pre className="mt-2 text-xs text-gray-500 overflow-auto">{JSON.stringify(debugInfo, null, 2)}</pre>
+        </details>
       </div>
     )
   }
 
   if (!program || !simulator || !simulatorState) {
     return (
-      <div className="rounded-lg border border-gray-600 bg-gray-900 p-4">
-        <p className="text-sm text-gray-500">Loading...</p>
+      <div className="rounded-lg border border-yellow-500/30 bg-yellow-950/10 p-4">
+        <p className="text-sm text-yellow-400">Loading ladder diagram...</p>
+        <details className="mt-4">
+          <summary className="text-xs text-gray-500 cursor-pointer hover:text-gray-400">Debug Info (Click to expand)</summary>
+          <pre className="mt-2 text-xs text-gray-500 overflow-auto">{JSON.stringify(debugInfo, null, 2)}</pre>
+        </details>
       </div>
     )
   }

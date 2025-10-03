@@ -22,7 +22,7 @@ export function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
-  const [agentMode, setAgentMode] = useState<'normal' | 'advanced'>('advanced')
+  const agentMode = 'advanced' // Always use advanced mode
 
   // Compact state
   const [currentCode, setCurrentCode] = useState('')
@@ -323,34 +323,6 @@ export function ChatInterface() {
         )}
       </div>
 
-      {/* Agent Mode Toggle */}
-      <div className="px-4 py-2 border-b border-gray-800 bg-gray-900/50">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-500">Mode:</span>
-            <button
-              onClick={() => setAgentMode('advanced')}
-              className={`px-3 py-1 text-xs rounded transition-colors ${
-                agentMode === 'advanced'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
-              }`}
-            >
-              Advanced
-            </button>
-            <button
-              onClick={() => setAgentMode('normal')}
-              className={`px-3 py-1 text-xs rounded transition-colors ${
-                agentMode === 'normal'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
-              }`}
-            >
-              Chat
-            </button>
-          </div>
-        </div>
-      </div>
 
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -424,6 +396,24 @@ export function ChatInterface() {
           </>
         )}
       </div>
+
+      {/* Debug: Code Status (for production troubleshooting) */}
+      {process.env.NODE_ENV === 'production' && (
+        <details className="px-4 pb-2">
+          <summary className="text-xs text-gray-600 cursor-pointer hover:text-gray-500">
+            Code Status: {currentCode ? `✅ ${currentCode.length} chars` : '❌ No code'}
+          </summary>
+          <pre className="mt-2 text-xs text-gray-600 overflow-auto p-2 bg-gray-900/50 rounded">
+            {JSON.stringify({
+              hasCurrentCode: !!currentCode,
+              codeLength: currentCode?.length || 0,
+              validationSuccess,
+              errorCount,
+              codePreview: currentCode?.substring(0, 150) || 'N/A'
+            }, null, 2)}
+          </pre>
+        </details>
+      )}
 
       {/* Ladder View - shown when code exists */}
       {currentCode && (

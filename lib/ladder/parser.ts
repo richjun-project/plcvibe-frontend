@@ -57,8 +57,9 @@ export function parseLadderText(text: string): LadderProgram {
   const ioMap: IOMapping[] = []
   const addressSet = new Set<string>()
 
+  // Always log in production for debugging deployed issues
+  console.log('[Parser] Starting parse - text length:', text?.length || 0)
   if (DEBUG) {
-    console.log('[Parser] Starting to parse ladder text...')
     console.log('[Parser] Input text:', text.substring(0, 200))
   }
 
@@ -173,7 +174,9 @@ export function parseLadderText(text: string): LadderProgram {
     })
   }
 
-  if (DEBUG) console.log(`[Parser] Parsing complete: ${networks.length} networks, ${ioMap.length} I/O`)
+  // Always log completion for production debugging
+  console.log(`[Parser] ✅ Parse complete: ${networks.length} networks, ${ioMap.length} I/O mappings`)
+  if (DEBUG) console.log('[Parser] Full result:', { networks: networks.length, ioMap })
   return { networks, ioMap }
 }
 
