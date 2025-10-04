@@ -152,6 +152,18 @@ export function ChatInterface() {
                   setCurrentStep(4)
                   setStepName('Fixing Issues')
                 }
+              } else if (data.type === 'partial_code') {
+                // Update code in real-time as it's being generated
+                setCurrentCode(data.code)
+                if (data.progress) {
+                  setStepName(`Generating Code... (${data.elapsed?.toFixed(1) || '0'}s)`)
+                }
+              } else if (data.type === 'heartbeat') {
+                // Keep-alive message to prevent timeout
+                // Just update step name to show progress
+                if (data.message) {
+                  setStepName(data.message)
+                }
               } else if (data.type === 'code_generated') {
                 // Update code immediately
                 setCurrentCode(data.code)

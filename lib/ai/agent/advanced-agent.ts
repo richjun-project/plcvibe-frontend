@@ -193,15 +193,43 @@ Respond with ONLY the JSON, no markdown.`
     const modelName = process.env.GEMINI_MODEL || 'gemini-2.0-flash'
     const model = genAI.getGenerativeModel({ model: modelName })
 
-    // Use rate limiter to handle 429 errors
-    const response = await rateLimiter.executeWithRetry(async () => {
-      const result = await model.generateContent(planningPrompt)
-      return result.response.text()
-    }, {
-      onRetry: (attempt, delay) => {
-        this.log(`⏳ Rate limit hit. Retrying (${attempt}) after ${delay}ms...`)
+    // Use streaming API for immediate response
+    const startTime = Date.now()
+    this.log(`⏱️ [API_CALL] Starting Gemini streaming API call for planning...`)
+
+    let response = ''
+    try {
+      // Use streaming to avoid timeout
+      const result = await model.generateContentStream(planningPrompt)
+
+      let chunkCount = 0
+      let lastHeartbeat = 0
+
+      for await (const chunk of result.stream) {
+        const chunkText = chunk.text()
+        response += chunkText
+        chunkCount++
+
+        // Send heartbeat every 5 chunks to keep connection alive
+        if (chunkCount - lastHeartbeat >= 5) {
+          lastHeartbeat = chunkCount
+          const elapsed = ((Date.now() - startTime) / 1000).toFixed(1)
+          this.sendUpdate({
+            type: 'heartbeat',
+            message: `Planning... ${chunkCount} chunks received`,
+            elapsed: parseFloat(elapsed)
+          })
+        }
       }
-    })
+
+      const elapsed = ((Date.now() - startTime) / 1000).toFixed(1)
+      this.log(`✅ [API_CALL] Planning streaming completed in ${elapsed}s (${chunkCount} chunks, ${response.length} chars)`)
+    } catch (error) {
+      const elapsed = ((Date.now() - startTime) / 1000).toFixed(1)
+      this.log(`❌ [API_ERROR] Planning API failed after ${elapsed}s: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      console.error('[API_ERROR] Full error:', error)
+      throw error
+    }
 
     // JSON 추출
     const jsonMatch = response.match(/\{[\s\S]*\}/)
@@ -536,15 +564,57 @@ KEY POINTS:
 Generate the CORRECTED \`\`\`ladder block (plain text, INPUTS LEFT, OUTPUTS RIGHT):`
     }
 
-    // Use rate limiter to handle 429 errors
-    const response = await rateLimiter.executeWithRetry(async () => {
-      const result = await model.generateContent(prompt)
-      return result.response.text()
-    }, {
-      onRetry: (attempt, delay) => {
-        this.log(`⏳ Rate limit hit during code generation. Retrying (${attempt}) after ${delay}ms...`)
+    // Use streaming API for immediate response
+    const startTime = Date.now()
+    this.log(`⏱️ [API_CALL] Starting Gemini streaming API call...`)
+
+    let response = ''
+    try {
+      // Use streaming to avoid timeout
+      const result = await model.generateContentStream(prompt)
+
+      let chunkCount = 0
+      let lastUpdateChunk = 0
+
+      for await (const chunk of result.stream) {
+        const chunkText = chunk.text()
+        response += chunkText
+        chunkCount++
+
+        // Send update EVERY chunk to prevent timeout (keep-alive)
+        // But only send partial code every 3 chunks to avoid spam
+        if (chunkCount - lastUpdateChunk >= 3) {
+          lastUpdateChunk = chunkCount
+          const elapsed = ((Date.now() - startTime) / 1000).toFixed(1)
+
+          // Try to extract and send partial ladder code
+          const partialMatch = response.match(/```ladder\n([\s\S]*?)($|```)/i)
+          if (partialMatch && partialMatch[1].length > 0) {
+            this.sendUpdate({
+              type: 'partial_code',
+              code: partialMatch[1],
+              progress: 'generating',
+              elapsed: parseFloat(elapsed)
+            })
+          } else {
+            // Send heartbeat even if no code yet
+            this.sendUpdate({
+              type: 'heartbeat',
+              message: `Generating... ${chunkCount} chunks received`,
+              elapsed: parseFloat(elapsed)
+            })
+          }
+        }
       }
-    })
+
+      const elapsed = ((Date.now() - startTime) / 1000).toFixed(1)
+      this.log(`✅ [API_CALL] Gemini streaming completed in ${elapsed}s (${chunkCount} chunks, ${response.length} chars)`)
+    } catch (error) {
+      const elapsed = ((Date.now() - startTime) / 1000).toFixed(1)
+      this.log(`❌ [API_ERROR] Gemini API failed after ${elapsed}s: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      console.error('[API_ERROR] Full error:', error)
+      throw error
+    }
 
     // Extract ladder block
     const ladderMatch = response.match(/```ladder\n([\s\S]*?)\n```/)

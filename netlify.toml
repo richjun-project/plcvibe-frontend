@@ -1,0 +1,21 @@
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+[functions]
+  node_bundler = "esbuild"
+  # Netlify Pro 필요: 무료 플랜은 10초, Pro는 26초까지 가능
+  # Background Functions로 변경하면 최대 15분 가능
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+# API Routes 로그 레벨 설정
+[context.production.environment]
+  NODE_ENV = "production"
+  NEXT_TELEMETRY_DISABLED = "1"

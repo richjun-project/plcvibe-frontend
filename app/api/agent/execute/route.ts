@@ -162,7 +162,8 @@ export async function POST(req: NextRequest) {
           // Send initial status
           sendUpdate({ type: 'start', message: 'Agent started' })
 
-          // Execute agent
+          // Execute agent - NO TIMEOUT because we're streaming keep-alive messages
+          // As long as we keep sending data, Netlify won't timeout
           const result = await agent.execute(request, existingCode)
 
           // Send final result
@@ -173,7 +174,14 @@ export async function POST(req: NextRequest) {
 
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'error', message: errorMessage })}\n\n`))
+          console.error('[Agent API] Execution error:', errorMessage)
+          console.error('[Agent API] Error stack:', error instanceof Error ? error.stack : 'No stack')
+
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+            type: 'error',
+            message: errorMessage,
+            details: error instanceof Error ? error.stack : undefined
+          })}\n\n`))
           controller.close()
         }
       }
