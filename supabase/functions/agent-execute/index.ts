@@ -25,10 +25,19 @@ Deno.serve(async (req) => {
     }
 
     const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')
-    const GEMINI_MODEL = Deno.env.get('GEMINI_MODEL') || 'gemini-2.0-flash-exp'
+    const GEMINI_MODEL = Deno.env.get('GEMINI_MODEL') || 'gemini-2.5-pro'
+
+    console.log('[ENV] GEMINI_API_KEY exists:', !!GEMINI_API_KEY)
+    console.log('[ENV] GEMINI_MODEL:', GEMINI_MODEL)
 
     if (!GEMINI_API_KEY) {
-      throw new Error('GEMINI_API_KEY not configured')
+      console.error('[ERROR] GEMINI_API_KEY not configured in Supabase secrets')
+      return new Response(
+        JSON.stringify({
+          error: 'GEMINI_API_KEY not configured. Please set it in Supabase Dashboard > Settings > Edge Functions > Add Secret'
+        }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
     }
 
     console.log('[Agent API] Starting advanced agent for:', request)
@@ -177,6 +186,14 @@ Generate ONLY the \`\`\`ladder block now:`
 
           const ladderMatch = codeResponse.match(/```ladder\n([\s\S]*?)\n```/)
           if (!ladderMatch) {
+            console.error('[CODE_ERROR] No ladder block found')
+            console.error('[CODE_ERROR] Response preview:', codeResponse.substring(0, 500))
+            console.error('[CODE_ERROR] Full response length:', codeResponse.length)
+
+            sendUpdate({
+              type: 'error',
+              message: `No ladder code block found in AI response. Response preview: ${codeResponse.substring(0, 200)}...`
+            })
             throw new Error('No ladder code block found in AI response')
           }
 
