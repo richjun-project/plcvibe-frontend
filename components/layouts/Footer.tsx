@@ -41,26 +41,7 @@ export function Footer() {
             </ul>
           </div>
 
-          <div>
-            <h3 className="font-semibold text-gray-100 mb-4">Resources</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link href="/docs" className="text-sm text-gray-400 hover:text-gray-100 transition-colors">
-                  Documentation
-                </Link>
-              </li>
-              <li>
-                <Link href="/tutorials" className="text-sm text-gray-400 hover:text-gray-100 transition-colors">
-                  Tutorials
-                </Link>
-              </li>
-              <li>
-                <Link href="/blog" className="text-sm text-gray-400 hover:text-gray-100 transition-colors">
-                  Blog
-                </Link>
-              </li>
-            </ul>
-          </div>
+          {/* Resources section removed - pages not implemented yet */}
 
           <div>
             <h3 className="font-semibold text-gray-100 mb-4">Connect</h3>

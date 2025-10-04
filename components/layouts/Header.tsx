@@ -68,12 +68,7 @@ export function Header() {
                 >
                   Templates
                 </Link>
-                <Link
-                  href="/docs"
-                  className="text-sm text-gray-400 hover:text-gray-100 transition-colors"
-                >
-                  Docs
-                </Link>
+                {/* Docs link removed - page not implemented yet */}
               </nav>
             )}
 
