@@ -80,9 +80,16 @@ export function ChatInterface() {
         setValidationSuccess(true)
         setErrorCount(0)
 
-        const response = await fetch('/api/agent/execute', {
+        // Use Supabase Edge Function (no timeout limitations!)
+        const edgeFunctionUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/agent-execute`
+
+        const response = await fetch(edgeFunctionUrl, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
+            'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+          },
           body: JSON.stringify({
             request: input.trim(),
             existingCode: currentCode // Pass existing code for context
